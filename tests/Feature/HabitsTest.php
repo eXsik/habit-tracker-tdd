@@ -66,12 +66,24 @@ class HabitsTest extends TestCase
     /**
      * @dataProvider provideBadHabitData
      */
-    public function test_update_habit_validation(string $updated, Array $habit): void
+    public function test_update_habit_validation(string $missing, Array $habit): void
     {
         $habitId = Habit::factory()->create()->id;
 
         $response = $this->put("/habits/{$habitId}", $habit);
-        $response->assertSessionHasErrors([$updated]);
+        $response->assertSessionHasErrors([$missing]);
+    }    
+
+    public function test_habits_can_be_deleted(): void
+    {
+        $habitId = Habit::factory()->create()->id;
+
+        $response = $this->withExceptionHandling()->delete("/habits/{$habitId}");
+
+        $response->assertRedirect('/habits');
+        $this->assertDatabaseMissing('habits', [
+            'id' => $habitId
+        ]);
     }
 
     public static function provideBadHabitData(): Array
